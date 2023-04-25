@@ -8,6 +8,14 @@ It only supports one instance.
 
 ----
 
+## Install
+
+```
+ansible-galaxy install niceshops.mssql
+```
+
+----
+
 ## Limitations
 
 Make sure to read into the limitations of MSSQL on Linux beforehand:
@@ -178,3 +186,5 @@ root@mssql:~# mssql.sh "select login_time,hostname,program_name,cpu,physical_io,
 > 2023-04-22 07:14:20.537                                                            5760                    0 background                XIO_RETRY_WORKER
 > ......
 ```
+
+For useful commands see: [Commands](https://github.com/niceshops/mssql-linux/blob/main/COMMANDS.md)

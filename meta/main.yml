@@ -20,3 +20,5 @@ galaxy_info:
     - 'db'
     - 'ssis'
     - 'mssql'
+
+collections: []
