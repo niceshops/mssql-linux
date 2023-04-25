@@ -1,0 +1,35 @@
+---
+
+# see: https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-configure-ssis?view=sql-server-ver15
+
+- name: MSSQL | Setup SSIS | Running setup
+  ansible.builtin.command:
+    cmd: '/opt/ssis/bin/ssis-conf -n setup'
+    stdin: 'Yes'
+  environment:
+    ACCEPT_EULA: 'Y'
+    SSIS_PID: "{{ mssql_secrets.license_vars[MSSQL.license] | default(MSSQL.version, true) }}"
+  changed_when: true
+
+- name: MSSQL | Setup SSIS | Disabling telemetry (only paid-versions)
+  ansible.builtin.command:
+    cmd: '/opt/ssis/bin/ssis-conf telemetry'
+    stdin: 'No'
+  changed_when: true
+
+- name: MSSQL | Setup SSIS | Disabling telemetry service
+  ansible.builtin.systemd:
+    name: 'ssis-telemetry.service'
+    enabled: false
+    state: stopped
+
+- name: MSSQL | Setup SSIS | Validating SSIS config (if failed => re-run 'ssis-conf' commands manually!)
+  ansible.builtin.template:
+    src: 'templates/var/opt/ssis/ssis.conf.j2'
+    dest: '/var/opt/ssis/ssis.conf'
+    owner: 'ssis'
+    group: 'ssis'
+    mode: 0644
+  check_mode: true
+  register: ssis_cnf
+  failed_when: ssis_cnf.changed

@@ -1,0 +1,59 @@
+---
+
+- name: MSSQL | Prepare | Add repo key
+  ansible.builtin.apt_key:
+    url: "{{ MSSQL_HC.apt.key }}"
+    state: present
+
+- name: MSSQL | Prepare | Add Repositories
+  ansible.builtin.apt_repository:
+    repo: "{{ item.r }}"
+    state: present
+    update_cache: yes
+    filename: "{{ item.f }}"
+  loop:
+    - {f: 'mssql', r: "deb [arch=amd64] {{ MSSQL_HC.apt.repo }}/{{ ansible_distribution | lower }}/\
+    {{ ansible_distribution_version }}/mssql-server-{{ MSSQL_HC.version }} {{ ansible_distribution_release | lower }} main"}
+    - {f: 'mssql_util', r: "deb [arch=amd64] {{ MSSQL_HC.apt.repo }}/{{ ansible_distribution | lower }}/\
+    {{ ansible_distribution_version }}/prod {{ ansible_distribution_release | lower }} main"}
+
+# NOTE: using 18.04 repo because package does not exist on 20.04 repo (see release-notes)
+#   https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-release-notes-2019?view=sql-server-ver15&preserve-view=true#latest-versions-for-all-packages
+#   https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-setup-ssis?view=sql-server-linux-ver15&tabs=ubuntu
+- name: MSSQL | Prepare | Setting lower priority for ssis-repo (2019)
+  ansible.builtin.copy:
+    content: |
+      Package: mssql*
+      Pin: release a=xenial
+      Pin-Priority: 400
+    dest: '/etc/apt/preferences.d/mssql_ssis'
+    mode: 0644
+  when:
+    - MSSQL.ssis | bool
+    - MSSQL.version == 2019
+
+- name: MSSQL | Prepare | Add SSIS repo (2019)
+  ansible.builtin.apt_repository:
+    repo: 'deb [arch=amd64] https://packages.microsoft.com/ubuntu/18.04/mssql-server-2019 bionic main'
+    state: present
+    update_cache: yes
+    filename: 'mssql_ssis'
+  when:
+    - MSSQL.ssis | bool
+    - MSSQL.version == 2019
+
+- name: MSSQL | Prepare | Removing SSIS repo (2019)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - '/etc/apt/preferences.d/mssql_ssis'
+    - '/etc/apt/source.list.d/mssql_ssis.list'
+  when: MSSQL.version != 2019
+
+- name: MSSQL | Prepare | Adding Utils to PATH
+  ansible.builtin.blockinfile:
+    path: '/root/.bashrc'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK FOR MSSQL"
+    block: 'export PATH="$PATH:/opt/mssql-tools/bin{% if MSSQL.ssis | bool %}:/opt/ssis/bin{% endif %}"'
+    mode: 0640

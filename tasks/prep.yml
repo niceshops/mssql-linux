@@ -1,0 +1,37 @@
+---
+
+- name: MSSQL | Prepare | Repository
+  ansible.builtin.import_tasks: prep_repo.yml
+
+- name: MSSQL | Prepare | Installing dependencies
+  ansible.builtin.apt:
+    name: "{{ MSSQL_HC.packages.prep }}"
+    state: present
+
+- name: MSSQL | Prepare | Logrotate
+  ansible.builtin.template:
+    src: 'templates/etc/logrotate.d/mssql.j2'
+    dest: '/etc/logrotate.d/mssql'
+    owner: 'root'
+    group: 'root'
+    mode: 0644
+  register: mssql_logrotate
+
+- name: MSSQL | Prepare | Restarting syslog
+  ansible.builtin.systemd:
+    name: 'rsyslog.service'
+    state: restarted
+  when: mssql_logrotate.changed or ssis_logrotate.changed
+
+- name: MSSQL | Prepare | Pulling mounts
+  ansible.builtin.command: 'cat /etc/fstab'
+  register: mssql_fstab
+  changed_when: false
+  check_mode: false
+
+- name: MSSQL | Prepare | Check mounts for best-practices
+  ansible.builtin.assert:
+    that:
+      - "MSSQL.path.data not in mssql_fstab.stdout or '{{ MSSQL.path.data }} {{ MSSQL_HC.mounts }}' in mssql_fstab.stdout"
+      - "MSSQL.path.index not in mssql_fstab.stdout or '{{ MSSQL.path.index }} {{ MSSQL_HC.mounts }}' in mssql_fstab.stdout"
+      - "MSSQL.path.binlog not in mssql_fstab.stdout or '{{ MSSQL.path.binlog }} {{ MSSQL_HC.mounts }}' in mssql_fstab.stdout"

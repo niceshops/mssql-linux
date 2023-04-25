@@ -1,0 +1,66 @@
+---
+
+- name: MSSQL | Post-Install | Creating directories (owned by mssql)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: 'mssql'
+    group: 'mssql'
+    mode: 0755
+  loop:
+    - "{{ MSSQL.path.data }}"
+    - "{{ MSSQL.path.index }}"
+    - "{{ MSSQL.path.binlog }}"
+    - "{{ MSSQL.path.log }}"
+    - "{{ MSSQL.path.backup }}"
+    - "{{ MSSQL.path.config }}"
+
+- name: MSSQL | Post-Install | Creating directories (mssql RO)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: 'root'
+    group: 'mssql'
+    mode: 0755
+  loop:
+    - "{{ MSSQL.path.ssl }}"
+    - "{{ MSSQL.path.tuned }}"
+
+- name: MSSQL | Post-Install | Setting systemd-file mode
+  ansible.builtin.file:
+    path: '/lib/systemd/system/mssql-server.service'
+    state: touch
+    mode: 0644
+    access_time: preserve
+    modification_time: preserve
+
+- name: MSSQL | Post-Install | Creating systemd-override directory
+  ansible.builtin.file:
+    path: '/etc/systemd/system/mssql-server.service.d/'
+    state: directory
+    owner: 'root'
+    group: 'root'
+    mode: 0755
+
+- name: MSSQL | Post-Install | Creating systemd-override
+  ansible.builtin.template:
+    src: 'templates/etc/systemd/system/mssql-server.service.d/override.conf.j2'
+    dest: '/etc/systemd/system/mssql-server.service.d/override.conf'
+    owner: 'root'
+    group: 'root'
+    mode: 0644
+
+- name: MSSQL | Post-Install | Copying script
+  ansible.builtin.template:
+    src: 'templates/usr/local/sbin/mssql.sh.j2'
+    dest: '/usr/local/sbin/mssql.sh'
+    owner: 'root'
+    group: 'root'
+    mode: 0750
+  when: MSSQL.admin_script
+
+- name: MSSQL | Post-Install | Enabling SQL-Server
+  ansible.builtin.systemd:
+    name: 'mssql-server.service'
+    enabled: true
+    daemon_reload: true

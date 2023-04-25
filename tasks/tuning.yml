@@ -1,0 +1,22 @@
+---
+
+# https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-performance-best-practices
+
+# TUNED
+#   see: https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-performance-best-practices?#proposed-linux-settings-using-a-tuned-mssql-profile
+
+- name: MSSQL | Config | Tuned
+  ansible.builtin.template:
+    src: 'templates/usr/lib/tuned/mssql/tuned.conf.j2'
+    dest: "{{ MSSQL.path.tuned }}/tuned.conf"
+    owner: 'root'
+    group: 'root'
+    mode: 0750
+  register: mssql_tuned
+
+- name: MSSQL | Config | Tuned Reload
+  ansible.builtin.command: 'tuned-adm profile mssql'
+  when: mssql_tuned.changed
+
+# NIC
+#   see: https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-performance-best-practices?#network-setting-recommendations

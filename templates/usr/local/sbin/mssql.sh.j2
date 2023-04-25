@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# {{ ansible_managed }}
+
+set -eo pipefail
+
+# see: https://learn.microsoft.com/en-us/sql/tools/sqlcmd/sqlcmd-utility?view=sql-server-ver15
+
+export SQLCMDPASSWORD="$(cat "/root/{{ mssql_pwd_file | default('.mssql', true) }}")"
+export SQLCMDSERVER='{{ mssql_remote_server | default(MSSQL.settings.network.ip, true) }}'
+export SQLCMDUSER='SA'
+export SQLCMDLOGINTIMEOUT=2
+SEP='####################'
+COLUMN_LIMIT=25  # max-size of columns (to make output readable)
+
+echo ''
+echo "$SEP"
+if [ -z "$1" ]
+then
+  echo 'Connecting to MSSQL-Server..'
+  echo "$SEP"
+  echo ''
+  /opt/mssql-tools/bin/sqlcmd -Y "$COLUMN_LIMIT"
+else
+  # run query
+  echo "Connecting to MSSQL-Server to run query: '$1'"
+  echo "$SEP"
+  echo ''
+  /opt/mssql-tools/bin/sqlcmd -Y "$COLUMN_LIMIT" -Q "$1"
+  echo ''
+fi

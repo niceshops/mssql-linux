@@ -1,0 +1,63 @@
+[EULA]
+accepteula = Y
+
+[filelocation]
+defaultbackupdir = {{ MSSQL.path.backup }}/
+defaultdatadir = {{ MSSQL.path.data }}/
+defaultdumpdir = {{ MSSQL.path.backup }}/
+defaultlogdir = {{ MSSQL.path.binlog }}/
+errorlogfile = {{ MSSQL.path.log }}/sql.error.log
+
+# masterdatafile = {{ MSSQL.path.data }}/master.mdf
+# masterlogfile = {{ MSSQL.path.binlog }}/mastlog.ldf
+
+[language]
+lcid = {{ MSSQL.settings.language.lcid }}
+
+[memory]
+memorylimitmb = {{ MSSQL.settings.memory.limit_mb }}
+memory_optimized = {{ MSSQL.settings.memory.optimized }}
+
+[network]
+ipaddress = {{ MSSQL.settings.network.ip }}
+# kerberoskeytabfile = /var/opt/mssql/secrets/mssql.keytab
+rpcport = {{ MSSQL.settings.network.port.rpc }}
+tcpport = {{ MSSQL.settings.network.port.tcp }}
+
+forceencryption = {{ MSSQL.settings.network.ssl.force }}
+# tlscert = {{ MSSQL.settings.network.ssl.cert }}
+# tlskey = {{ MSSQL.settings.network.ssl.key }}
+tlsprotocols = {{ MSSQL.settings.network.ssl.tls_version }}
+
+[distributedtransaction]
+servertcpport = {{ MSSQL.settings.network.port.dtc }}
+
+[sqlagent]
+enabled = {% if MSSQL.agent | bool %}true{% else %}false{% endif %}
+databasemailprofile = {{ MSSQL.settings.agent_mail }}
+errorlogfile = {{ MSSQL.path.log }}/agent.error.log
+errorlogginglevel = {{ MSSQL.settings.log.level_agent }}
+
+[telemetry]
+customerfeedback = false
+userrequestedlocalauditdirectory = /tmp/audit
+
+[wmi]
+enabled = {% if MSSQL.settings.wmi | bool %}true{% else %}false{% endif %}
+
+[coredump]
+captureminiandfull = {{ MSSQL.settings.core_dump.capture_minimal_and_full }}
+coredumptype = {{ MSSQL.settings.core_dump.type }}
+
+# handled by logrotate
+# [errorlog]
+# numerrorlogs = 20
+
+{% if MSSQL.settings.dtc.enable | bool %}
+[distributedtransaction]
+allowonlysecurerpccalls = {{ MSSQL.settings.dtc.allowonlysecurerpccalls }}
+turnoffrpcsecurity = {{ MSSQL.settings.dtc.turnoffrpcsecurity }}
+fallbacktounsecurerpcifnecessary = {{ MSSQL.settings.dtc.fallbacktounsecurerpcifnecessary }}
+servertcpport = {{ MSSQL.settings.network.port.dtc }}
+maxlogsize = {{ MSSQL.settings.dtc.maxlogsize }}  # MB
+{% endif %}

@@ -1,0 +1,12 @@
+[LICENSE]{# NOTE: For SSIS, you cannot change system settings by changing the values in the ssis.conf file. The ssis.conf file shows only the results of the setup #}
+registered = Y
+pid = {{ mssql_license_vars[MSSQL.license] | default(MSSQL.version, true) }}
+
+[EULA]
+accepteula = Y
+
+[TELEMETRY]
+enabled = N
+
+[language]
+lcid = 1033{# don't know why or how to change it #}

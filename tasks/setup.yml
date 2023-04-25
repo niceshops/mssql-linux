@@ -1,0 +1,18 @@
+---
+
+- name: MSSQL | Setup | Stopping SQL-Server
+  ansible.builtin.systemd:
+    name: 'mssql-server.service'
+    state: stopped
+
+- name: MSSQL | Setup | Running setup
+  ansible.builtin.command: '/opt/mssql/bin/mssql-conf -n setup accept-eula'
+  environment:
+    MSSQL_SA_PASSWORD: "{{ mssql_sa_pwd | default(mssql_sa_prompt.user_input, true) }}"
+    MSSQL_PID: "{{ mssql_secrets.license_vars[MSSQL.license] | default(MSSQL.version, true) }}"
+  changed_when: true
+
+- name: MSSQL | Setup | Starting SQL-Server
+  ansible.builtin.systemd:
+    name: 'mssql-server.service'
+    state: started

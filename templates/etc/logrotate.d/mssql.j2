@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+
+{{ MSSQL.path.log }}/*.log {
+    daily
+    rotate 20
+    copytruncate
+    compress
+    delaycompress
+    missingok
+    notifempty
+}

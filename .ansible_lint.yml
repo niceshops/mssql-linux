@@ -1,3 +1,6 @@
 ---
 
-skip_list: []
+skip_list:
+  - 'no-handler'
+  - 'galaxy[no-changelog]'
+  - 'var-naming'

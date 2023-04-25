@@ -1,0 +1,38 @@
+---
+
+- name: MSSQL | Install Client | Repository
+  ansible.builtin.assert:
+    that:
+      - mssql_sa_pwd | default(none, true) is not none
+      - mssql_remote_server | default(none, true) is not none
+
+- name: MSSQL | Install Client | Repository
+  ansible.builtin.import_tasks: prep_repo.yml
+
+- name: MSSQL | Install Client | Installing mssql-client
+  ansible.builtin.apt:
+    name: "{{ MSSQL_HC.packages.client }}"
+    state: present
+  environment:
+    ACCEPT_EULA: 'Y'
+
+- name: MSSQL | Install Client | Copying credentials-file
+  ansible.builtin.copy:
+    content: "{{ mssql_sa_pwd }}"
+    dest: "/root/.mssql_{{ mssql_remote_server }}"
+    owner: 'root'
+    group: 'root'
+    mode: 0640
+  no_log: true
+  when: MSSQL.admin_script
+
+- name: MSSQL | Install Client | Copying script
+  ansible.builtin.template:
+    src: 'templates/usr/local/sbin/mssql.sh.j2'
+    dest: "/usr/local/sbin/mssql_{{ mssql_remote_server }}.sh"
+    owner: 'root'
+    group: 'root'
+    mode: 0750
+  vars:
+    mssql_pwd_file: ".mssql_{{ mssql_remote_server }}"
+  when: MSSQL.admin_script

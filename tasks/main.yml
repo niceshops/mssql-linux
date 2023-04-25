@@ -1,0 +1,75 @@
+---
+
+# see: https://learn.microsoft.com/en-us/sql/linux/sample-unattended-install-ubuntu?view=sql-server-ver15
+
+- name: MSSQL | Checking config
+  ansible.builtin.assert:
+    that:
+      - MSSQL.settings.network.ip | default(none, true) is not none
+      - MSSQL.version is defined or MSSQL.license is defined
+      - MSSQL.license is undefined or MSSQL.license in mssql_secrets.license_vars
+
+- name: MSSQL | Checking if current Version is supported
+  ansible.builtin.uri:
+    url: "{{ MSSQL_HC.apt.repo }}"
+    status_code: 200
+
+- name: MSSQL | Preparation
+  ansible.builtin.import_tasks: prep.yml
+
+- name: MSSQL | Checking if installed
+  ansible.builtin.apt:
+    name: "{{ MSSQL_HC.packages.main }}"
+    state: present
+  check_mode: true
+  register: mssql_installed
+  diff: false
+
+- name: MSSQL | Installation
+  ansible.builtin.import_tasks: install.yml
+  when: mssql_installed.changed
+
+- name: MSSQL | Checking if SSIS is installed
+  ansible.builtin.apt:
+    name: "{{ MSSQL_HC.packages.ssis }}"
+    state: present
+  check_mode: true
+  register: mssql_ssis_installed
+  diff: false
+  when: MSSQL.ssis | bool
+  tags: ssis
+
+- name: MSSQL | SSIS installation
+  ansible.builtin.apt:
+    name: "{{ MSSQL_HC.packages.ssis }}"
+    state: present
+  environment:
+    ACCEPT_EULA: 'Y'
+  when:
+    - MSSQL.ssis | bool
+    - mssql_ssis_installed.changed
+  tags: ssis
+
+- name: MSSQL | Client Installation
+  ansible.builtin.import_tasks: client.yml
+  tags: [never, client]
+
+- name: MSSQL | Post-Installation
+  ansible.builtin.import_tasks: post_install.yml
+
+- name: MSSQL | Configuration
+  ansible.builtin.import_tasks: config.yml
+
+- name: MSSQL | Setup
+  ansible.builtin.import_tasks: setup.yml
+  when: mssql_installed.changed
+
+- name: MSSQL | SSIS Setup
+  ansible.builtin.import_tasks: setup_ssis.yml
+  when:
+    - MSSQL.ssis | bool
+    - mssql_ssis_installed.changed
+  tags: ssis
+
+- name: MSSQL | Performance tuning
+  ansible.builtin.import_tasks: tuning.yml

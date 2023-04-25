@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+
+[Service]
+RestartSec=10s
+Restart=on-failure
+StandardError=syslog
+OOMScoreAdjust=-500
+LimitNOFILE={{ MSSQL.open_file_limit.hard }}

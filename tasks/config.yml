@@ -1,0 +1,28 @@
+---
+
+- name: MSSQL | Config | Open-File-Limit
+  ansible.builtin.template:
+    src: 'templates/etc/security/limits.d/99-mssql-server.conf.j2'
+    dest: '/etc/security/limits.d/99-mssql-server.conf'
+    owner: 'root'
+    group: 'root'
+    mode: 0644
+  register: mssql_ofl
+
+- name: MSSQL | Config | Server-config
+  ansible.builtin.template:
+    src: 'templates/var/opt/mssql/mssql.conf.j2'
+    dest: "{{ MSSQL.path.config }}/mssql.conf"
+    owner: 'root'
+    group: 'mssql'
+    mode: 0640
+  register: mssql_cnf
+
+- name: MSSQL | Config | Restarting SQL-Server (if 'mssql_allow_restart=true')
+  ansible.builtin.systemd:
+    name: 'mssql-server.service'
+    state: restarted
+  when: >
+    mssql_allow_restart | bool and
+    (mssql_ofl.changed or
+    mssql_cnf.changed)

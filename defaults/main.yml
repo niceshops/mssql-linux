@@ -1,0 +1,88 @@
+---
+
+MSSQL_HC:
+  packages:
+    prep: ['xfsprogs', 'unixodbc-dev', 'tuned']
+    main: ['mssql-server', 'mssql-tools']
+    client: ['mssql-tools', 'unixodbc-dev']
+    ssis: 'mssql-server-is'
+    fts: 'mssql-server-fts'
+  version: 2022
+  apt:
+    key: 'https://packages.microsoft.com/keys/microsoft.asc'
+    repo: 'https://packages.microsoft.com'
+  path_base: '/var/opt/mssql'
+  mounts: 'xfs rw,attr2,noatime 0 0'
+
+mssql: {}
+
+mssql_defaults:
+  ssis: true  # SQL Server Integration Services; for maintenance plans
+  agent: true  # SQL Server Agent
+  fts: true  # full-text-search
+  admin_script: true  # copy mssql wrapper-script and place sa-password into /root/.mssql
+
+  path:
+    config: "{{ MSSQL_HC.path_base }}"
+    data: "{{ MSSQL_HC.path_base }}/data"
+    index: "{{ MSSQL_HC.path_base }}/index"
+    binlog: "{{ MSSQL_HC.path_base }}/binlog"
+    ssl: "{{ MSSQL_HC.path_base }}/ssl"
+    log: '/var/log/mssql'
+    backup: '/var/backups/mssql'
+    tuned: '/usr/lib/tuned/mssql'
+    ssis: '/var/opt/ssis'
+
+  # MSSQL_PID => evaluation, developer, express, web, standard, enterprise, or your 25 digit product key
+  version:
+  license:
+
+  open_file_limit:
+    soft: 16000
+    hard: 32727
+
+  settings:
+    log:
+      level_agent: 2  # 1-7
+    core_dump:
+      type: 'full'
+      capture_minimal_and_full: true
+    language:
+      # learn.microsoft.com/sql/relational-databases/system-catalog-views/sys-fulltext-languages-transact-sql?view=sql-server-ver16#values-returned-for-default-languages
+      lcid: 1031
+    memory:
+      limit_mb: 4096
+      optimized: true  # https://learn.microsoft.com/en-us/sql/relational-databases/in-memory-oltp/overview-and-usage-scenarios?view=sql-server-ver16
+
+    network:
+      ip:
+      port:
+        tcp: 1433
+        rpc: 13500
+        dtc: 51999
+
+      ssl:
+        force: 0
+        cert: '/var/opt/mssql/ssl/server.pem'
+        key: '/var/opt/mssql/ssl/server.key'
+        tls_version: '1.2'
+
+      dtc:  # https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-configure-mssql-conf?view=sql-server-linux-2017#msdtc
+        enable: false
+        allowonlysecurerpccalls: 1
+        turnoffrpcsecurity: 0
+        fallbacktounsecurerpcifnecessary: 0
+        maxlogsize: 64  # mb
+
+      wmi: false
+
+    agent_mail: 'local_postfix'  # created via Studio-GUI
+    operator_mail: 'Admin'  # created via Studio-GUI
+
+MSSQL: "{{ mssql_defaults | combine(mssql, recursive=true) }}"
+
+mssql_allow_restart: false
+
+# for client-only setup
+mssql_sa_pwd:
+mssql_remote_server:

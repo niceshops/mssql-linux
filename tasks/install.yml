@@ -1,0 +1,32 @@
+---
+
+- name: MSSQL | Install | Prompt for SA password
+  ansible.builtin.pause:
+    prompt: 'Provide a password for the SQL admin-user!'
+  register: mssql_sa_prompt
+  when: mssql_sa_pwd | default(none, true) is none
+
+- name: MSSQL | Install | Installing MSSQL Server
+  ansible.builtin.apt:
+    name: "{{ MSSQL_HC.packages.main }}"
+    state: present
+  environment:
+    ACCEPT_EULA: 'Y'
+
+- name: MSSQL | Install | Installing Full-Text-Search
+  ansible.builtin.apt:
+    name: "{{ MSSQL_HC.packages.fts }}"
+    state: present
+  environment:
+    ACCEPT_EULA: 'Y'
+  when: MSSQL.fts | bool
+
+- name: MSSQL | Install | Copying credentials-file
+  ansible.builtin.copy:
+    content: "{{ mssql_sa_pwd | default(mssql_sa_prompt.user_input, true) }}"
+    dest: '/root/.mssql'
+    owner: 'root'
+    group: 'root'
+    mode: 0600
+  no_log: true
+  when: MSSQL.admin_script
