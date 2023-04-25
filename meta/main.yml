@@ -1,0 +1,22 @@
+---
+
+galaxy_info:
+  author: 'Rene Rath <rene.rath@niceshops.com>'
+  company: 'niceshops GmbH'
+  namespace: 'niceshops'
+  license: 'BSD-3-Clause'
+  issue_tracker_url: 'https://github.com/niceshops/mssql-linux/issues'
+  min_ansible_version: 2.9.10
+  description: 'Ansible-Role and Notes to run MSSQL on Linux'
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+  galaxy_tags:
+    - 'database'
+    - 'windows'
+    - 'microsoft'
+    - 'sqlserver'
+    - 'db'
+    - 'ssis'
+    - 'mssql'
