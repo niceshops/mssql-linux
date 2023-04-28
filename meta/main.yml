@@ -3,7 +3,7 @@
 galaxy_info:
   author: 'Rene Rath <rene.rath@niceshops.com>'
   company: 'niceshops GmbH'
-  namespace: 'niceshops'
+  namespace: 'niceshopsOrg'
   license: 'BSD-3-Clause'
   issue_tracker_url: 'https://github.com/niceshops/mssql-linux/issues'
   min_ansible_version: 2.9.10

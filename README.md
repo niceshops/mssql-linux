@@ -11,7 +11,7 @@ It only supports one instance.
 ## Install
 
 ```
-ansible-galaxy install niceshops.mssql_linux
+ansible-galaxy install niceshopsOrg.mssql_linux
 # OR
 ansible-galaxy install git+https://github.com/niceshops/mssql-linux.git
 ```
