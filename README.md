@@ -190,3 +190,5 @@ root@mssql:~# mssql.sh "select login_time,hostname,program_name,cpu,physical_io,
 ```
 
 For useful commands see: [Commands](https://github.com/niceshops/mssql-linux/blob/main/COMMANDS.md)
+
+You can also generate [script-templates using the Management Studio GUI](https://learn.microsoft.com/en-us/sql/ssms/tutorials/scripting-ssms?view=sql-server-ver16). 
