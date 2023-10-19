@@ -10,8 +10,10 @@ It only supports one instance.
 
 ## Install
 
+Ansible Galaxy: [Role](https://galaxy.ansible.com/ui/standalone/roles/niceshops/mssql_linux/)
+
 ```
-ansible-galaxy install niceshopsOrg.mssql_linux
+ansible-galaxy install niceshops.mssql_linux
 # OR
 ansible-galaxy install git+https://github.com/niceshops/mssql-linux.git
 ```
